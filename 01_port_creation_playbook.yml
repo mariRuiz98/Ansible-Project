@@ -19,7 +19,3 @@
         commands:
           - show interfaces "{{ survey_port_name }}"
       register: port_info
-
-    - name: Mostrar información del puerto
-      debug:
-        var: port_info.stdout_lines
