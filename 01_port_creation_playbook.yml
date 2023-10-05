@@ -13,9 +13,3 @@
             speed: "{{ survey_speed | default('10000') }}"
             enabled: yes
         state: merged
-
-    - name: Ejecutar comando para consultar información sobre el puerto
-      cisco.ios.ios_command:
-        commands:
-          - show interfaces "{{ survey_port_name }}"
-      register: port_info
