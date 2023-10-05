@@ -1,0 +1,25 @@
+---
+- name: Configure network time
+  hosts: cisco
+  connection: network_cli
+  gather_facts: false
+
+  tasks:
+    - name: Dar de alta el puerto
+      cisco.ios.ios_interfaces:
+        config:
+          - name: "{{ survey_port_name }}"
+            description: "{{ survey_description | default('No description provided') }}"
+            speed: "{{ survey_speed | default('10000') }}"
+            enabled: yes
+        state: merged
+
+    - name: Ejecutar comando para consultar información sobre el puerto
+      cisco.ios.ios_command:
+        commands:
+          - show interfaces "{{ survey_port_name }}"
+      register: port_info
+
+    - name: Mostrar información del puerto
+      debug:
+        var: port_info.stdout_lines
