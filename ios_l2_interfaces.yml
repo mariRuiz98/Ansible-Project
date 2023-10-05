@@ -1,0 +1,64 @@
+---
+- name: Configure network time
+  hosts: cisco
+  connection: network_cli
+  gather_facts: false
+
+  vars:
+    puerto: "GigabitEthernet1"
+
+  tasks:
+    - name: Dar de alta el puerto
+      cisco.ios.ios_interfaces:
+        config:
+          - name: "{{ puerto }}"
+            description: "Alta el puerto por 1a vez"
+            speed: 10000
+            enabled: yes
+        state: merged
+
+    - name: Ejecutar comando para consultar información sobre el puerto
+      cisco.ios.ios_command:
+        commands:
+          - show interfaces {{ puerto }}
+      register: port_info
+
+    - name: Mostrar información del puerto
+      debug:
+        var: port_info.stdout_lines
+
+    #- name: Apagar el puerto (para hacer el reset)
+    #  cisco.ios.ios_interfaces:
+    #    config:
+    #      - name: "{{ puerto }}"
+    #        enabled: no
+    #    state: merged
+
+    #- name: Ejecutar comando para consultar información sobre el puerto 2
+    #  cisco.ios.ios_command:
+    #    commands:
+    #      - show interfaces {{ puerto }}
+    #  register: port_info2
+
+    #- name: Mostrar información del puerto 2
+    #  debug:
+    #    var: port_info2.stdout_lines
+
+    #- name: Encender el puerto (para hacer el reset)
+    #  cisco.ios.ios_interfaces:
+    #    config:
+    #      -  name: "{{ puerto }}"
+    #         enabled: yes
+    #    state: merged
+
+    #- name: Ejecutar comando para consultar información sobre el puerto 3
+    #  cisco.ios.ios_command:
+    #    commands:
+    #      - show interfaces {{ puerto }}
+    #  register: port_info3
+
+    #- name: Mostrar información del puerto 3
+    #  debug:
+    #    var: port_info3.stdout_lines
+
+    # Para dar de baja sería state: deleted, pero de momento mejor NO hacerlo
