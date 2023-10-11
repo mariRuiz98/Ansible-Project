@@ -10,24 +10,41 @@
       ios_command:
         commands: show vlan id "{{ survey_vlan_id }}" | section enet
       register: sh_vlan_output
+      
    # Check if VLAN it's defined, does not do anything if already exists
     - set_fact:
         vlan_exists: false
       when: sh_vlan_output.stdout_lines is defined
+      
    # Check if VLAN it's undefined, if not then go for below task to Add VLAN
     - set_fact:
         vlan_exists: true
       when: sh_vlan_output.stdout_lines is undefined
   
    # Add VLAN with name and interfaces (port) too
-    - name: Create VLAN using aggregate
+    - name: VLAN creation 
       cisco.ios.ios_vlans:
-        aggregate:
-          - { vlan_id: "{{ survey_vlan_id }}", name: "{{ survey_vlan_name }}", interfaces: "{{ survey_interface }}" }
+        vlan_id: "{{ survey_vlan_id }}" 
+        name: "{{ survey_vlan_name }}"
         mtu: "{{ survey_mtu }}"
         description: "{{ survey_description }}"
+        mtu: "{{ survey_mtu }}"
         ip_address: "{{ survey_ip_address }}"
         subnet_mask: "{{ survey_subnet_mask }}"
+        shutdown: no #Ensures vlan is not in state down
+        state: present #Ensures vlan creation
+      when: vlan_exists is not defined
+    
+    - name: Ensure VLAN has been created successfully
+      ios_command:
+        commands: show vlan id "{{ survey_vlan_id }}" | section enet
+      register: verify_vlan_output
+      ignore_errors: yes #Allows tasks continue even if the vlan was not found
+
+    - name: Check if any error was detected
+      fail:
+        msg: "Failed to create VLAN {{ survey_vlan_id }}"
+      when: verify_vlan_output.stdout_lines is not search("{{ vlan_name }}")
         
    # Save to start-config when modified 
     - name: Ensure changes are saved
