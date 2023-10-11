@@ -1,34 +1,35 @@
 ---
-- name: Create VLAN if don’t exist on a Cisco switch
+- name: Create VLAN 
   hosts: cisco
+  connection: network_cli
   gather_facts: false
-  connection: local
   
-  vars:
-    vlan_id: 35
-    vlan_name: Guest
-    interface: GigabitEthernet0/2
   tasks:
-    #Run show VLAN id "{{ vlan_id }}" and register result.
-    - name: Collect facts about VLAN "{{ vlan_id }}" on device
+    # Run show VLAN id and register result
+    - name: Collect facts about VLAN "{{ survey_vlan_id }}" on device
       ios_command:
-        commands: show vlan id "{{ vlan_id }}" | section enet
+        commands: show vlan id "{{ survey_vlan_id }}" | section enet
       register: sh_vlan_output
-   #Check if VLAN it's defined, does not do anything if existing 
+   # Check if VLAN it's defined, does not do anything if already exists
     - set_fact:
         vlan_exists: false
       when: sh_vlan_output.stdout_lines is defined
-   #Check if VLAN it's undefined, if not then go for below task to Add VLAN
+   # Check if VLAN it's undefined, if not then go for below task to Add VLAN
     - set_fact:
         vlan_exists: true
       when: sh_vlan_output.stdout_lines is undefined
   
-   #Add VLAN with name and interfaces (port) too
+   # Add VLAN with name and interfaces (port) too
     - name: Create VLAN using aggregate
       cisco.ios.ios_vlans:
         aggregate:
-        - {vlan_id: "{{ vlan_id }}", name: "{{ vlan_name }}", interfaces: "{{ interface }}"}
-   #Save to start-config when modified 
-    - name: save running to start-config when modified
+          - { vlan_id: "{{ survey_vlan_id }}", name: "{{ survey_vlan_name }}", interfaces: "{{ survey_interface }}" }
+        mtu: "{{ survey_mtu }}"
+        description: "{{ survey_description }}"
+        ip_address: "{{ survey_ip_address }}"
+        subnet_mask: "{{ survey_subnet_mask }}"
+        
+   # Save to start-config when modified 
+    - name: Ensure changes are saved
       ios_config:
         save_when: modified
