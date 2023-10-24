@@ -34,28 +34,19 @@
         state: merged
       when: not port_status.stdout | search('is up') is match
 
-    - name: Ensure VLAN if provided
+    - name: Ensure VLAN is provided
       assert:
         that:
           - "survey_vlan is defined"
         fail_msg: "The value of 'survey_vlan' is mandatory."
+
+    - name: Gather existing VLAN information
+      cisco.ios.ios_vlan_facts:
+      register: existing_vlans
 
     - name: Add VLAN if specified
       cisco.ios.ios_vlan:
         vlan_id: "{{ survey_vlan }}"
         name: "VLAN {{ survey_vlan }}"
         state: present
-
-    - name: Ensure VLAN IP if provided
-      assert:
-        that:
-          - "survey_vlan_ip is defined"
-        fail_msg: "The value of 'survey_vlan_ip' is mandatory."
-
-    - name: Add IP address to VLAN if specified
-      cisco.ios.ios_interface:
-        config:
-          - name: "Vlan{{ survey_vlan }}"
-            ipv4:
-              address: "{{ survey_vlan_ip }}"
-        state: present
+      when: existing_vlans.vlans is defined and survey_vlan in existing_vlans.vlans
