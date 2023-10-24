@@ -1,15 +1,23 @@
 ---
-- name: Configure network time
+- name: PORT CREATION ON A CISCO ROUTER IOS CSR1000V
   hosts: cisco
   connection: network_cli
   gather_facts: false
 
   tasks:
-    - name: Dar de alta el puerto
+    - name: Ensure input values are correct
+      assert:
+        that:
+          - "survey_port_name is defined"
+        fail_msg: "The value of 'survey_port_name' is mandatory."
+
+    - name: Enable port
       cisco.ios.ios_interfaces:
         config:
           - name: "{{ survey_port_name }}"
-            description: "{{ survey_description | default('No description provided') }}"
-            speed: "{{ survey_speed | default('10000') }}"
+            description: "{{ survey_description | default(omit) }}"
+            bandwith: "{{ survey_bandwith | default(omit) }}"
+            delay: "{{ survey_delay | default(omit) }}"
             enabled: yes
         state: merged
+
