@@ -16,7 +16,7 @@
         config:
           - name: "{{ survey_port_name }}"
             description: "{{ survey_description | default(omit) }}"
-            bandwith: "{{ survey_bandwith | default(omit) }}"
+            bandwith: "{{ survey_bandwidth | default(omit) }}"
             delay: "{{ survey_delay | default(omit) }}"
             enabled: yes
         state: merged
