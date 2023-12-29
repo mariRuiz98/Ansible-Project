@@ -1,0 +1,34 @@
+---
+- name: Ver todos los registros DNS en F5 Big-IP
+  hosts: localhost
+  gather_facts: false
+  vars:
+    bigip_server: "192.168.63.248"  # IP of Big-IP
+    bigip_user: "root"
+    bigip_password: "Dmitnow1!"
+    bigip_partition: "Common"
+    dns_record_name: "test-A.com"    # Name host
+    dns_record_content: "192.168.63.150"     # IP Address to associate with Name host
+    port_record: 80
+ 
+  tasks:
+    - name: Obtener todos los registros DNS
+      bigip_command:
+        commands:
+          - list /sys dns all-properties
+        provider:
+          server: "{{ bigip_server }}"
+          user: "{{ bigip_user }}"
+          password: "{{ bigip_password }}"
+          server_port:  443
+          validate_certs: false
+      delegate_to: localhost
+      register: dns_output
+
+    - name: Mostrar resultados
+      debug:
+        var: dns_output.stdout_lines
+        
+ 
+ 
+ 
