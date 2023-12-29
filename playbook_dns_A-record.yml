@@ -1,0 +1,49 @@
+---
+- name: Configurar registros DNS tipo A en BIG-IP F5
+  hosts: localhost
+  gather_facts: false
+  vars:
+    bigip_server: "192.168.63.248"  # IP of Big-IP
+    bigip_user: "root"
+    bigip_password: "Dmitnow1!"
+    bigip_partition: "Common"
+    dns_record_name: "test-A.com"    # Name host
+    dns_record_content: "192.168.63.150"     # IP Address to associate with Name host
+    port_record: 80
+ 
+  tasks:
+    - name: Configurar registro DNS tipo A
+      bigip_command:
+        commands:
+          - "tmsh create ltm dns nameserver '{{dns_record_name}}' address '{{dns_record_content}}' port '{{port_record}}'"
+        provider:
+          server: "{{ bigip_server }}"
+          user: "{{ bigip_user }}"
+          password: "{{ bigip_password }}"
+          server_port:  443
+          validate_certs: false
+      delegate_to: localhost
+ 
+    - name: Realizar commit de los cambios
+      bigip_command:
+        commands:
+          - "tmsh save sys config"
+        provider:
+          server: "{{ bigip_server }}"
+          user: "{{ bigip_user }}"
+          password: "{{ bigip_password }}"
+          server_port:  443
+          validate_certs: false
+      delegate_to: localhost
+   
+    - name: Ver los cambios realizados
+      bigip_command:
+        commands:
+          - "tmsh list ltm dns"
+        provider:
+          server: "{{ bigip_server }}"
+          user: "{{ bigip_user }}"
+          password: "{{ bigip_password }}"
+          server_port:  443
+          validate_certs: false
+      delegate_to: localhost
